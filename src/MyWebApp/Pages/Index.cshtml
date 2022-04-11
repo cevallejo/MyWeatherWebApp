@@ -1,0 +1,147 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "My Weather WebApp";
+}
+
+@{
+    if(Model.latitude==null || Model.latitude=="")
+    {
+    <div class="text-center">
+        <p id="msg">@Model.latitude</p>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.2.1.js"></script>
+    <script type="text/javascript">  
+        var x = document.getElementById("msg");  
+        function getLocation() {  
+            if (navigator.geolocation) {  
+                navigator.geolocation.getCurrentPosition(showPosition, showError);  
+            }  
+            else { x.innerHTML = "Geolocation is not supported by this browser."; }  
+        }   
+        function showPosition(position) {  
+            document.cookie='latitude='+position.coords.latitude+';max-age=2592000';
+            document.cookie='longitude='+position.coords.longitude+';max-age=2592000';
+            document.location.href='';
+        }  
+        function showError(error) {  
+            if (error.code == 1) {  
+                x.innerHTML = error.message;//"User denied the request for Geolocation."  
+            }  
+            else if (err.code == 2) {  
+                x.innerHTML = "Location information is unavailable."  
+            }  
+            else if (err.code == 3) {  
+                x.innerHTML = "The request to get user location timed out."  
+            }  
+            else {  
+                x.innerHTML = "An unknown error occurred."  
+            }  
+        }  
+        getLocation();
+    </script>
+    }
+    else {
+        if(Model.day==0)
+        {
+        <div class="card mt-3">
+            <div class="card-header text-white" style="background-color:#2d4464">
+                <h4>@Model.weatherResponse2.Name, @Model.weatherResponse2.Sys.Country (Lat: @Model.weatherResponse.Lat, Lon: @Model.weatherResponse.Lon): @Math.Round(Model.weatherResponse.Current.Temp)°</h4>
+                @DateTime.Now.ToString("D")
+            </div>
+            <div class="card-body text-white" style="background-color:#7092be"> <!--#99d9ea-->
+                <div class="row">
+                    <div class="col-6">
+                        <h1 class="display-3 bold" style="float:left">@Math.Round(Model.weatherResponse.Current.Temp)°</h1>
+                        <img class="card-img" src="http://openweathermap.org/img/wn/@Model.weatherResponse.Current.Weather[0].Icon@@2x.png" style="width:fit-content">
+                        <p>@char.ToUpper(Model.weatherResponse.Current.Weather[0].Description[0])@Model.weatherResponse.Current.Weather[0].Description.Substring(1)</p>
+                    </div>
+                    <div class="col-6">
+                        <div class="border-bottom p-2">
+                            Humidity: @Model.weatherResponse.Current.Humidity%
+                        </div>
+                        <div class="border-bottom p-2">
+                            Wind: @Model.windSpeed @(Model.units=="2" ? "mph" : "K/h")
+                        </div>
+                        <div class="p-2">
+                            Precipitation percentage: @(Model.weatherResponse.Daily[0].Pop*100)%
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        }
+
+        <div class="card mt-5">
+            <div class="card-header">
+                <h4 style="margin-bottom:0">@(Model.day==0 ? "Today's" : @DateTime.Now.AddDays(@Model.day).ToString("M")) Forecast</h4>
+            </div>
+            <div class="card-body" style="color:#2d4464">
+                <span style="font-size:3rem">@Math.Round(Model.weatherResponse.Daily[@Model.day].Temp.Max)°</span>
+                <span style="font-size:1.5rem">/@Math.Round(Model.weatherResponse.Daily[@Model.day].Temp.Min)°</span>
+                <img class="card-img" src="http://openweathermap.org/img/wn/@Model.weatherResponse.Daily[@Model.day].Weather[0].Icon@@2x.png" style="width:fit-content">
+                <p>@char.ToUpper(Model.weatherResponse.Daily[@Model.day].Weather[0].Description[0])@Model.weatherResponse.Daily[@Model.day].Weather[0].Description.Substring(1)</p>
+                <div class="row">
+                    <div class="col-6">
+                        <div class="border-top">Humidity: @Model.weatherResponse.Daily[@Model.day].Humidity%</div>
+                        <div class="border-top">Pressure: @Model.weatherResponse.Daily[@Model.day].Pressure hPa</div>
+                        <div class="border-top">Wind Speed: @((Model.weatherResponse.Daily[@Model.day].Wind_Speed*3.6).ToString("F")) @(Model.units=="2" ? "mph" : "K/h")</div>
+                    </div>
+                    <div class="col-6">
+                        <div class="border-top">Cloudiness: @Model.weatherResponse.Daily[@Model.day].Clouds%</div>
+                        @{
+                            DateTime sunriseTime = new DateTime(1970,1,1,0,0,0,0,System.DateTimeKind.Utc);
+                            sunriseTime = sunriseTime.AddSeconds( Model.weatherResponse.Daily[@Model.day].Sunrise ).ToLocalTime();
+                            DateTime sunsetTime = new DateTime(1970,1,1,0,0,0,0,System.DateTimeKind.Utc);
+                            sunsetTime = sunsetTime.AddSeconds( Model.weatherResponse.Daily[@Model.day].Sunset ).ToLocalTime();
+                        }
+                        <div class="border-top">Sunrise: @sunriseTime.ToString("H:mm")</div>
+                        <div class="border-top">Sunset: @sunsetTime.ToString("H:mm")</div>
+                    </div>
+                </div>
+            </div>
+        </div>    
+
+        if(Model.day==0) {
+        <div class="row mt-5">
+            <div class="card-group">
+            @for(var i=1;i<=5;i++)
+            {
+                <div class="card">
+                    <div class="card-header text-center">
+                        <h4 style="margin-bottom:0">@DateTime.Now.AddDays(@i).ToString("M")</h4>
+                    </div>
+                    <div class="card-body text-center" style="color:#2d4464">
+                        <span style="font-size:2rem">@Math.Round(Model.weatherResponse.Daily[@i].Temp.Max)°</span>
+                        <span>/@Math.Round(Model.weatherResponse.Daily[@i].Temp.Min)°</span><br>
+                        <img class="card-img" src="http://openweathermap.org/img/wn/@Model.weatherResponse.Daily[@i].Weather[0].Icon@@2x.png" style="width:fit-content; width:50%; height:50%">
+                        <p>@char.ToUpper(Model.weatherResponse.Daily[@i].Weather[0].Description[0])@Model.weatherResponse.Daily[@i].Weather[0].Description.Substring(1)</p>
+                        <a href="/?day=@i" style="text-decoration:none">Details</a>
+                    </div>
+                </div>
+            }
+            </div>
+        </div>    
+        }
+        else{
+            <div class="card mt-3">
+                <div class="card-header"><h4>Daily Forecast</h4></div>
+            </div>
+            <div class="card-group">
+                <div class="card">
+                    <div class="card-body">
+                    <a href="/" style="text-decoration:none">Today</a>
+                    </div>
+                </div>
+            @for(var i=1;i<=5;i++)
+            {
+                <div class="card">
+                    <div class="card-body">
+                    <a href="/?day=@i" style="text-decoration:none">@DateTime.Now.AddDays(@i).ToString("M")</a>
+                    </div>
+                </div>
+            }
+            </div>
+        }
+    }
+}
